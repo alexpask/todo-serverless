@@ -1,0 +1,17 @@
+service: auth-service
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: eu-west-2
+
+plugins:
+  - serverless-python-requirements
+
+functions:
+  auth:
+    handler: handler.handler
+
+custom:
+  pythonRequirements:
+    dockerizePip: true

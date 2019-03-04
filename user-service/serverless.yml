@@ -1,0 +1,47 @@
+service: user-service
+
+provider:
+  name: aws
+  runtime: java8
+  region: eu-west-2
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:*"
+      Resource: "*"
+
+package:
+  artifact: target/${self:service}-${self:provider.stage}.jar
+
+functions:
+  registerUser:
+    handler: org.alexp.handlers.RegistrationHandler::handleRequest
+    description: Registers a user to the todo application
+    events:
+      - http:
+          path: /users
+          method: POST
+
+  authenticateUser:
+    handler: org.alexp.handlers.AuthenicationHandler::handleRequest
+    description: authenicates a user against stored password
+    events:
+      - http:
+          path: /users/auth
+          method: POST
+
+resources:
+  Resources:
+    transactionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: users
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

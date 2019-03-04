@@ -1,0 +1,51 @@
+service: todo-service
+
+provider:
+  name: aws
+  runtime: java8
+  region: eu-west-2
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:*"
+      Resource: "*"
+
+package:
+  artifact: target/${self:service}-${self:provider.stage}.jar
+
+functions:
+  addTodo:
+    handler: org.alexp.handlers.AddTodoHandler::handleRequest
+    description: Adds a todo to a user
+    events:
+      - http:
+          path: /todo
+          method: POST
+
+  listTodos:
+    handler: org.alexp.handlers.ListTodosHandler::handleRequest
+    description: List todos of a user
+    events:
+      - http:
+          path: /todo
+          method: GET
+
+resources:
+  Resources:
+    transactionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: todos
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: todoId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: todoId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
